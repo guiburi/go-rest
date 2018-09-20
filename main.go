@@ -65,5 +65,8 @@ func main() {
 
 
 //TODO:
+// - implement TEST!
 // - request validation
 // - error json response
+// - makefile
+// - docker integration
