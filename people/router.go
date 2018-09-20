@@ -56,15 +56,14 @@ func deletePerson(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(people)
 }
 
-// A completely separate router for administrator routes
 func Routes() http.Handler {
 	r := chi.NewRouter()
 	r.Get("/", getPeople)
 	r.Route("/{id}", func(r chi.Router) {
-		r.Get("/", getPerson)       // GET /articles/123
-		r.Post("/",createPerson)       // GET /articles/123
-		r.Put("/", modifyPerson)    // PUT /articles/123
-		r.Delete("/", deletePerson) // DELETE /articles/123
+		r.Get("/", getPerson)
+		r.Post("/",createPerson)
+		r.Put("/", modifyPerson)
+		r.Delete("/", deletePerson)
 	})
 	return r
 }
