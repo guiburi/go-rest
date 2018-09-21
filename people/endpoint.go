@@ -18,7 +18,7 @@ func getPerson(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(person)
 }
 
-func getPeople(w http.ResponseWriter, req *http.Request) {
+func getPeople(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(GetPeople())
 }
@@ -56,7 +56,7 @@ func deletePerson(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(people)
 }
 
-func Routes() http.Handler {
+func EndPoints() http.Handler {
 	r := chi.NewRouter()
 	r.Get("/", getPeople)
 	r.Route("/{id}", func(r chi.Router) {

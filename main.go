@@ -9,9 +9,11 @@ import (
 	"github.com/go-chi/chi"
 	"go-rest/people"
 	"github.com/go-chi/chi/middleware"
+	"os/signal"
+	"context"
 )
 
-var opts struct{
+var opts struct {
 	port string
 }
 
@@ -26,20 +28,18 @@ func initDb() {
 		Address: &people.Address{City: "Queens", State: "NY"}})
 	people.CreatePerson(people.Person{ID: "2", Firstname: "gene", Lastname: "simmons"})
 	people.CreatePerson(people.Person{ID: "3", Firstname: "tommy", Lastname: "thayer",
-		Address: &people.Address{City: "Portland",State:"OR"}})
+		Address: &people.Address{City: "Portland", State: "OR"}})
 	people.CreatePerson(people.Person{ID: "4", Firstname: "eric", Lastname: "singer"})
 }
 
-
 func main() {
-	l := log.New(os.Stdout, "go-rest ", log.LstdFlags|log.Lshortfile)
+	l := log.New(os.Stdout, "go-rest ", log.LstdFlags)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
+	r.Use(Logger(l))
 
-	r.Mount("/people",people.Routes())
+	r.Mount("/people", people.EndPoints())
 
 	r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("pong\n"))
@@ -55,14 +55,23 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	host, _:= os.Hostname()
-	l.Printf("%s - Starting server on port %v", host, opts.port)
-	if err := s.ListenAndServe(); err != nil {
-		l.Fatalf("Could not listen on %s: %v\n", opts.port, err)
-	}
+	stopChan := make(chan os.Signal)
+	signal.Notify(stopChan, os.Interrupt)
+
+	go func() {
+		l.Printf("Starting server on port :%v", opts.port)
+		if err := s.ListenAndServe(); err != nil {
+			l.Fatalf("Could not listen on %s: %v\n", opts.port, err)
+		}
+	}()
+
+	<-stopChan
+	l.Println("Shutting down server")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	s.Shutdown(ctx)
+	defer cancel()
+	l.Println("Server gracefully stopped")
 }
-
-
 
 //TODO:
 // - implement TEST!
